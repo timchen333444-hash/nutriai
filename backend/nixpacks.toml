@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["npm ci --ignore-scripts"]
 
 [phases.build]
-cmds = ["./node_modules/.bin/prisma generate"]
+cmds = ["node node_modules/prisma/build/index.js generate"]
 
 [start]
 cmd = "node src/index.js"
