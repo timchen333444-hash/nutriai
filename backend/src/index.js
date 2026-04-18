@@ -25,7 +25,20 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: '*' }));
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://nutriai-lime.vercel.app',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow server-to-server requests (no origin) and any listed origin
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
+    else cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
+}));
 app.use(express.json({ limit: '20mb' }));
 
 app.use('/api/auth', authRoutes);

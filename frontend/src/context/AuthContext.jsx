@@ -27,7 +27,13 @@ function clearStorage() {
 
 // ── Synchronous boot-time setup ────────────────────────────────────────────────
 // This runs at module evaluation time (before any component renders) so every
-// axios call made by child components already has the correct header.
+// axios call made by child components already has the correct base URL and header.
+
+// Point all relative /api calls at the Railway backend in production.
+// In development Vite's proxy handles /api → localhost:3001, so no baseURL is needed.
+if (import.meta.env.VITE_API_URL) {
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+}
 
 const _bootToken = readToken();
 const _bootUser  = readUser();
