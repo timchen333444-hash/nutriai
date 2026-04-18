@@ -3,7 +3,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "node src/index.js",
+    "startCommand": "node node_modules/prisma/build/index.js db push && node src/index.js",
     "restartPolicyType": "ON_FAILURE"
   }
 }
