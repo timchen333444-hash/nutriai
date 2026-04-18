@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    /* 16px root — prevents iOS auto-zoom on any rem-based calc */
+    font-size: 16px;
+  }
+
+  body {
+    background-color: #f8faf9;
+    color: #1a2e1c;
+    line-height: 1.6;
+  }
+
+  /* Prevent iOS auto-zoom on inputs (requires font-size ≥ 16px) */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Keyboard-navigation focus rings — visible, high-contrast */
+  :focus-visible {
+    outline: 3px solid #4a7c59;
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+
+  /* Subtle tap/click feedback on every button */
+  button:active:not(:disabled) {
+    transform: scale(0.97);
+    transition: transform 0.08s ease-out;
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: 'Syne', sans-serif;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Horizontally scrollable pill strip — used by Library category filter */
+.category-scroll {
+  display: flex;
+  overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth slide-up animation for modals */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes toastIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-toast {
+  animation: toastIn 0.25s ease-out;
+}
+
+/* Progress bar transitions */
+.progress-bar {
+  transition: width 0.6s ease-out;
+}
+
+/* Ring animation */
+.ring-progress {
+  transition: stroke-dashoffset 0.8s ease-out;
+}
