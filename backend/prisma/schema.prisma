@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int         @id @default(autoincrement())
+  email               String      @unique
+  password            String
+  name                String
+  goal                String      @default("maintain")
+  age                 Int?
+  sex                 String?
+  height              Float?
+  weight              Float?
+  activityLevel       String      @default("sedentary")
+  dietaryRestrictions String      @default("[]")
+  calorieTarget       Float?
+  proteinTarget       Float?
+  carbTarget          Float?
+  fatTarget           Float?
+  units               String      @default("metric")
+  weightUnit          String      @default("lbs")
+  heightUnit          String      @default("ft")
+  waterUnit           String      @default("floz")
+  energyUnit          String      @default("kcal")
+  dateFormat          String      @default("MM/DD/YYYY")
+  firstDayOfWeek      String      @default("sunday")
+  onboardingComplete  Boolean     @default(false)
+  alertSettings       String?     // JSON: {deficiencyAlerts,dailySummary,streakWarnings,foodSuggestions,weeklyReport}
+  createdAt           DateTime    @default(now())
+  foodLogs            FoodLog[]
+  waterLogs           WaterLog[]
+  savedPlans          SavedPlan[]
+  weightLogs          WeightLog[]
+  mealTemplates       MealTemplate[]
+  recipes             Recipe[]
+  supplementLogs      SupplementLog[]
+  groceryLists        GroceryList[]
+  deficiencyAlerts    DeficiencyAlert[]
+  recipeLikes         RecipeLike[]
+  templateLikes       TemplateLike[]
+  contentReports      ContentReport[]
+  fitnessLogs         FitnessLog[]
+  integrations        UserIntegration[]
+}
+
+model SavedPlan {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  name          String
+  planData      String   // JSON-serialised array of day-plan objects
+  days          Int      @default(1)
+  calorieTarget Int      @default(2000)
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Food {
+  id          Int       @id @default(autoincrement())
+  name        String
+  brand       String?
+  category    String
+  servingSize Float     @default(100)
+  servingUnit String    @default("g")
+  calories    Float
+  protein     Float
+  carbs       Float
+  fat         Float
+  fiber       Float     @default(0)
+  sugar       Float     @default(0)
+  sodium      Float     @default(0)
+  aminoAcids  String    @default("{}")
+  fattyAcids  String    @default("{}")
+  vitamins    String    @default("{}")
+  minerals    String    @default("{}")
+  fdcId          Int?      @unique
+  barcode        String?   @unique
+  source         String?   // "seeded" | "usda" | "barcode_scan" | "custom" | "recipe"
+  firstScannedAt DateTime?
+  firstScannedBy String?   // Display name of the first user to scan this barcode
+  scanCount      Int?      @default(1) // How many times this barcode has been scanned across all users
+  createdAt      DateTime  @default(now())
+  foodLogs    FoodLog[]
+}
+
+model FoodLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  foodId      Int
+  meal        String
+  servingSize Float
+  servingUnit String
+  multiplier  Float    @default(1)
+  calories    Float
+  protein     Float
+  carbs       Float
+  fat         Float
+  fiber       Float    @default(0)
+  sugar       Float    @default(0)
+  sodium      Float    @default(0)
+  nutrients   String   @default("{}")
+  date        String
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  food        Food     @relation(fields: [foodId], references: [id])
+}
+
+model WaterLog {
+  id      Int    @id @default(autoincrement())
+  userId  Int
+  date    String
+  glasses Int    @default(0)
+  user    User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model MealTemplate {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  name            String
+  description     String   @default("")
+  foods           String   @default("[]") // JSON: [{foodId,foodName,portionMultiplier,calories,protein,carbs,fat}]
+  totalCalories   Float    @default(0)
+  totalProtein    Float    @default(0)
+  totalCarbs      Float    @default(0)
+  totalFat        Float    @default(0)
+  isPublic        Boolean  @default(false)
+  createdByName   String   @default("")
+  createdByUserId Int?
+  likes           Int      @default(0)
+  usageCount      Int      @default(0)
+  tags            String?  // JSON array e.g. ["High Protein","Vegan"]
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+  templateLikes   TemplateLike[]
+}
+
+model Recipe {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  name            String
+  description     String?
+  servings        Int      @default(1)
+  ingredients     String   @default("[]") // JSON: [{foodId,foodName,category,servingSize,grams,calories,protein,carbs,fat,fiber,nutrients,base}]
+  totalCalories   Float    @default(0)
+  totalProtein    Float    @default(0)
+  totalCarbs      Float    @default(0)
+  totalFat        Float    @default(0)
+  totalFiber      Float    @default(0)
+  nutrientData    String   @default("{}") // JSON: {vitamins:{...},minerals:{...},aminoAcids:{...},fattyAcids:{...}}
+  isPublic        Boolean  @default(false)
+  createdByName   String   @default("")
+  createdByUserId Int?
+  likes           Int      @default(0)
+  usageCount      Int      @default(0)
+  tags            String?  // JSON array e.g. ["High Protein","Keto"]
+  createdAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id])
+  recipeLikes     RecipeLike[]
+}
+
+model RecipeLike {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  recipeId  Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+
+  @@unique([userId, recipeId])
+}
+
+model TemplateLike {
+  id         Int          @id @default(autoincrement())
+  userId     Int
+  templateId Int
+  createdAt  DateTime     @default(now())
+  user       User         @relation(fields: [userId], references: [id])
+  template   MealTemplate @relation(fields: [templateId], references: [id])
+
+  @@unique([userId, templateId])
+}
+
+model ContentReport {
+  id               Int      @id @default(autoincrement())
+  reportedByUserId Int
+  contentType      String   // "recipe" | "template"
+  contentId        Int
+  reason           String
+  createdAt        DateTime @default(now())
+  reportedBy       User     @relation(fields: [reportedByUserId], references: [id])
+}
+
+model SupplementLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  name        String
+  brand       String   @default("")
+  dosage      Float    @default(0)
+  dosageUnit  String   @default("mg")
+  nutrients   String   @default("{}") // JSON: {vitamins:{...}, minerals:{...}, aminoAcids:{...}, fattyAcids:{...}}
+  notes       String   @default("")
+  date        String   // YYYY-MM-DD for date-based queries
+  loggedAt    DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model GroceryList {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  planId             Int?     // optional link to a SavedPlan
+  name               String
+  items              String   @default("[]") // JSON: [{id,name,quantity,unit,section,checked,estimatedCost,custom}]
+  totalEstimatedCost Float    @default(0)
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id])
+}
+
+model WeightLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  weight    Float
+  unit      String   @default("kg")
+  notes     String   @default("")
+  loggedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model FitnessLog {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  date           String   // YYYY-MM-DD
+  steps          Int      @default(0)
+  caloriesBurned Float    @default(0)
+  activeMinutes  Int      @default(0)
+  distanceKm     Float    @default(0)
+  heartRateAvg   Float?
+  source         String   // "google_fit" | "apple_health" | "manual"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model UserIntegration {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  provider     String    // "google_fit"
+  accessToken  String?
+  refreshToken String?
+  tokenExpiry  DateTime?
+  isConnected  Boolean   @default(false)
+  lastSyncedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, provider])
+}
+
+model DeficiencyAlert {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  nutrientName   String
+  nutrientKey    String
+  currentPercent Float
+  streakDays     Int      @default(0)
+  severity       String   // "low" | "very_low" | "critical"
+  suggestions    String   @default("[]") // JSON array of food suggestions
+  date           String   // YYYY-MM-DD
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, nutrientKey, date])
+}
