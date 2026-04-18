@@ -47,6 +47,7 @@ app.use('/api/community',     communityRoutes);
 app.use('/api/integrations',  integrationsRoutes);
 app.use('/api/fitness',       fitnessRoutes);
 
+app.get('/health', (_, res) => res.json({ status: 'ok' }));
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
 const startServer = (port) => {
