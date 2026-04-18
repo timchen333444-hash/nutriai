@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -114,6 +115,7 @@ export default function App() {
           </UnitsProvider>
         </ToastProvider>
       </AuthProvider>
+      <Analytics />
     </BrowserRouter>
   );
 }
