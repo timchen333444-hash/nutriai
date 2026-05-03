@@ -24,12 +24,13 @@ router.get('/', authMiddleware, async (req, res) => {
       where: {
         ...(q && { name: { contains: q } }),
         ...(category && { category }),
-        // Exclude foods with no category when filtering by 'Scanned Products'
       },
       orderBy,
     });
+    console.log(`GET /api/foods → returned ${foods.length} foods (q=${q ?? ''}, category=${category ?? ''}, sort=${sort ?? ''})`);
     res.json(foods.map(parseFood));
   } catch (e) {
+    console.error('GET /api/foods error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });

@@ -126,9 +126,14 @@ export default function Library() {
       axios.get('/api/foods'),
       axios.get('/api/foods/categories'),
     ]).then(([foodRes, catRes]) => {
+      console.log('[Library] /api/foods →', foodRes.status, foodRes.data.length, 'foods');
+      console.log('[Library] /api/foods/categories →', catRes.data);
       setFoods(foodRes.data);
       setCategories(['All', ...catRes.data]);
-    }).catch(() => toast.error('Failed to load foods'));
+    }).catch((err) => {
+      console.error('[Library] failed to load foods:', err.response?.status, err.response?.data ?? err.message);
+      toast.error('Failed to load foods');
+    });
   }, []);
 
   // ── Debounced USDA search ──

@@ -2455,7 +2455,14 @@ const foods = [
 
 async function main() {
   console.log('Seeding database...');
-  await prisma.food.deleteMany();
+  const models = ['foodLog', 'groceryListItem', 'groceryList', 'savedPlan', 'supplementLog', 'weightLog', 'progressPhoto', 'waterLog', 'deficiencyAlert', 'recipeLike', 'templateLike', 'mealTemplateItem', 'mealTemplate', 'recipeIngredient', 'recipe', 'userProfile', 'userIntegration', 'fitnessLog', 'food'];
+  for (const model of models) {
+    try {
+      await prisma[model].deleteMany();
+    } catch (e) {
+      console.log('Skipping ' + model);
+    }
+  }
 
   for (const food of foods) {
     const { aminoAcids, fattyAcids, vitamins, minerals, ...rest } = food;
