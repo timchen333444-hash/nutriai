@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const Anthropic = require('@anthropic-ai/sdk');
 const authMiddleware = require('../middleware/auth.js');
+const usageLimit     = require('../middleware/usageLimit.js');
 const prisma = require('../lib/prisma.js');
 
 const router = Router();
@@ -113,7 +114,7 @@ function buildDayPrompt({ dayNumber, totalDays, mealsPerDay, target, reqs, varie
 
 // ── POST /api/ai/meal-plan ────────────────────────────────────────────────────
 
-router.post('/meal-plan', authMiddleware, async (req, res) => {
+router.post('/meal-plan', authMiddleware, usageLimit('plan'), async (req, res) => {
   const {
     calorieTarget,
     mealsPerDay          = 3,
@@ -260,7 +261,7 @@ Return only valid JSON:
 
 // ── POST /api/ai/photo-estimate ───────────────────────────────────────────────
 
-router.post('/photo-estimate', authMiddleware, async (req, res) => {
+router.post('/photo-estimate', authMiddleware, usageLimit('photo'), async (req, res) => {
   const { imageBase64, mimeType = 'image/jpeg' } = req.body;
   if (!imageBase64) return res.status(400).json({ error: 'imageBase64 required' });
 

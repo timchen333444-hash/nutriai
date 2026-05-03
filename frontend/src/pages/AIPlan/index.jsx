@@ -692,6 +692,7 @@ function AIPlan() {
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [saving,        setSaving]        = useState(false);
   const [deletingId,    setDeletingId]    = useState(null);
+  const [usage,         setUsage]         = useState(null);
 
   // Shared fetch so both mount and post-save can use the same call
   const fetchSavedPlans = async () => {
@@ -705,6 +706,11 @@ function AIPlan() {
 
   // Load saved plans on mount
   useEffect(() => { fetchSavedPlans(); }, []);
+
+  // Load usage on mount
+  useEffect(() => {
+    axios.get('/api/usage').then(r => setUsage(r.data)).catch(() => {});
+  }, []);
 
   // ── Grocery lists ──
   const [groceryLists,    setGroceryLists]    = useState([]);
@@ -745,6 +751,9 @@ function AIPlan() {
         healthFocus, days: planDays, varietySettings,
       });
       setCurrentPlan(normalizePlan(data));
+      setUsage(prev => prev && !prev.isPremium
+        ? { ...prev, aiPlans: { ...prev.aiPlans, used: prev.aiPlans.used + 1 } }
+        : prev);
     } catch (e) {
       toast.error(e.response?.data?.error || 'Failed to generate plan');
     } finally {
@@ -982,12 +991,29 @@ function AIPlan() {
         </div>
 
         {/* Generate button */}
-        <button onClick={generate} disabled={loading}
-          className="w-full flex items-center justify-center gap-3 bg-primary text-white font-bold py-4 rounded-2xl hover:bg-primary-dark disabled:opacity-60 transition-colors text-base shadow-lg shadow-primary/20">
-          {loading
-            ? <><Loader2 size={20} className="animate-spin" />Creating your {planDays > 1 ? `${planDays}-day ` : ''}plan…</>
-            : <><Sparkles size={20} />{generateLabel}</>}
-        </button>
+        {(() => {
+          const atLimit = usage && !usage.isPremium && usage.aiPlans.used >= usage.aiPlans.limit;
+          const resetLabel = usage?.aiPlans?.resetsAt
+            ? new Date(usage.aiPlans.resetsAt + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+            : null;
+          return (
+            <>
+              <button onClick={generate} disabled={loading || atLimit}
+                className="w-full flex items-center justify-center gap-3 bg-primary text-white font-bold py-4 rounded-2xl hover:bg-primary-dark disabled:opacity-60 transition-colors text-base shadow-lg shadow-primary/20">
+                {loading
+                  ? <><Loader2 size={20} className="animate-spin" />Creating your {planDays > 1 ? `${planDays}-day ` : ''}plan…</>
+                  : <><Sparkles size={20} />{generateLabel}</>}
+              </button>
+              {usage && !usage.isPremium && (
+                <p className="text-center text-xs text-gray-400 -mt-3">
+                  {atLimit
+                    ? `Monthly limit reached · Resets ${resetLabel}`
+                    : `${usage.aiPlans.used} of ${usage.aiPlans.limit} free AI plans used this month${resetLabel ? ` · Resets ${resetLabel}` : ''}`}
+                </p>
+              )}
+            </>
+          );
+        })()}
 
         {loading && (
           <div className="text-center py-2">

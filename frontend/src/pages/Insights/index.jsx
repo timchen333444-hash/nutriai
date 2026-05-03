@@ -585,6 +585,88 @@ function ActivityTrends() {
   );
 }
 
+// ── Amino Acid Trend section ──────────────────────────────────────────────────
+
+function AminoAcidTrend() {
+  const [history, setHistory] = useState(null);
+
+  useEffect(() => {
+    axios.get('/api/nutrition/amino-score/history?days=7')
+      .then(r => setHistory(r.data))
+      .catch(() => setHistory([]));
+  }, []);
+
+  if (!history || history.every(d => d.score === 0)) return null;
+
+  const scores = history.map(d => d.score);
+  const daysWithData = history.filter(d => d.score > 0);
+  const avgScore = daysWithData.length
+    ? Math.round(daysWithData.reduce((s, d) => s + d.score, 0) / daysWithData.length)
+    : 0;
+  const bestEntry = [...history].sort((a, b) => b.score - a.score)[0];
+  const bestDayLabel = new Date(bestEntry.date + 'T12:00:00').toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
+
+  const chartData = history.map(d => ({
+    day:   new Date(d.date + 'T12:00:00').toLocaleDateString('en', { weekday: 'short' }),
+    score: d.score || null,
+  }));
+
+  const color = avgScore >= 80 ? '#4a7c59' : avgScore >= 50 ? '#f59e0b' : '#ef4444';
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl p-4">
+      <div className="flex items-center gap-2 mb-0.5">
+        <span className="text-base">🔬</span>
+        <p className="font-semibold text-sm">Protein Quality Score</p>
+      </div>
+      <p className="text-xs text-gray-400 mb-4">Essential amino acid completeness — 7 day trend</p>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-gray-50 rounded-xl p-3 text-center">
+          <p className="font-syne font-bold text-xl" style={{ color }}>{avgScore}</p>
+          <p className="text-xs text-gray-400">7-day avg</p>
+        </div>
+        <div className="bg-gray-50 rounded-xl p-3 text-center">
+          <p className="font-syne font-bold text-xl text-primary">{bestDayLabel}</p>
+          <p className="text-xs text-gray-400">Best day ({bestEntry.score})</p>
+        </div>
+      </div>
+
+      {/* Line chart */}
+      <ResponsiveContainer width="100%" height={120}>
+        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+          <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+          <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickCount={3} />
+          <Tooltip
+            contentStyle={{ borderRadius: 12, border: 'none', fontSize: 12 }}
+            formatter={v => v != null ? [`${v}/100`, 'Quality Score'] : ['No data', '']}
+          />
+          <Line
+            type="monotone" dataKey="score" stroke={color} strokeWidth={2.5} connectNulls={false}
+            dot={{ fill: color, r: 3, strokeWidth: 0 }} activeDot={{ r: 4 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 mt-2">
+        {[
+          { color: '#4a7c59', label: '80+ Great' },
+          { color: '#f59e0b', label: '50–79 Good' },
+          { color: '#ef4444', label: '0–49 Low' },
+        ].map(({ color: c, label }) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c }} />
+            <span className="text-[10px] text-gray-400">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Insights page ────────────────────────────────────────────────────────
 
 export default function Insights() {
@@ -743,6 +825,9 @@ export default function Insights() {
             </div>
           </div>
         )}
+
+        {/* Amino acid trend */}
+        <AminoAcidTrend />
 
         {/* Nutrient gaps */}
         {gaps.length > 0 && (

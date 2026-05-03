@@ -2,6 +2,7 @@ const { Router } = require('express');
 const Anthropic = require('@anthropic-ai/sdk');
 const prisma = require('../lib/prisma.js');
 const authMiddleware = require('../middleware/auth.js');
+const usageLimit     = require('../middleware/usageLimit.js');
 const {
   analyzeDailyDeficiencies,
   analyzeWeeklySummary,
@@ -54,7 +55,7 @@ router.put('/settings', authMiddleware, async (req, res) => {
 });
 
 // ── GET /api/alerts/weekly-report ─────────────────────────────────────────────
-router.get('/weekly-report', authMiddleware, async (req, res) => {
+router.get('/weekly-report', authMiddleware, usageLimit('insight'), async (req, res) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     const settings = parseAlertSettings(user?.alertSettings);

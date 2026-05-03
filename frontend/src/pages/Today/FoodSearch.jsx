@@ -21,9 +21,15 @@ export default function FoodSearch({ onAdd }) {
   const [showPhotoResult, setShowPhotoResult] = useState(false);
   // fdcId of the USDA food currently being imported (shows spinner on that row)
   const [importingFdcId, setImportingFdcId] = useState(null);
+  const [photoUsage,     setPhotoUsage]     = useState(null);
   const fileRef = useRef(null);
   const toast = useToast();
   const timer = useRef(null);
+
+  // Fetch photo usage on mount
+  useEffect(() => {
+    axios.get('/api/usage').then(r => setPhotoUsage(r.data?.aiPhotos)).catch(() => {});
+  }, []);
 
   // Reset grams to last-used preference (or food's default serving size) when a food is selected
   useEffect(() => {
@@ -119,10 +125,11 @@ export default function FoodSearch({ onAdd }) {
         setPhotoResult(data);
         setShowPhotoResult(true);
         setPhotoLoading(false);
+        setPhotoUsage(prev => prev ? { ...prev, used: prev.used + 1 } : prev);
       };
       reader.readAsDataURL(file);
-    } catch {
-      toast.error('Photo analysis failed');
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Photo analysis failed');
       setPhotoLoading(false);
     }
   };
@@ -304,6 +311,11 @@ export default function FoodSearch({ onAdd }) {
             ))}
             {photoResult.notes && (
               <p className="text-xs text-gray-400 italic">{photoResult.notes}</p>
+            )}
+            {photoUsage && (
+              <p className="text-xs text-gray-400 text-center pt-1">
+                {photoUsage.used} of {photoUsage.limit} free photo scans used this month
+              </p>
             )}
           </div>
         )}

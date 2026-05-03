@@ -19,6 +19,8 @@ const alertsRoutes      = require('./routes/alerts.js');
 const communityRoutes   = require('./routes/community.js');
 const integrationsRoutes = require('./routes/integrations.js');
 const fitnessRoutes      = require('./routes/fitness.js');
+const nutritionRoutes    = require('./routes/nutrition.js');
+const usageRoutes        = require('./routes/usage.js');
 
 dotenv.config();
 
@@ -59,6 +61,8 @@ app.use('/api/alerts',        alertsRoutes);
 app.use('/api/community',     communityRoutes);
 app.use('/api/integrations',  integrationsRoutes);
 app.use('/api/fitness',       fitnessRoutes);
+app.use('/api/nutrition',    nutritionRoutes);
+app.use('/api/usage',        usageRoutes);
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));

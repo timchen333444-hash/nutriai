@@ -31,8 +31,13 @@ model User {
   dateFormat          String      @default("MM/DD/YYYY")
   firstDayOfWeek      String      @default("sunday")
   onboardingComplete  Boolean     @default(false)
-  alertSettings       String?     // JSON: {deficiencyAlerts,dailySummary,streakWarnings,foodSuggestions,weeklyReport}
-  createdAt           DateTime    @default(now())
+  alertSettings           String?     // JSON: {deficiencyAlerts,dailySummary,streakWarnings,foodSuggestions,weeklyReport}
+  aiPlansUsedThisMonth    Int       @default(0)
+  aiPhotosUsedThisMonth   Int       @default(0)
+  aiInsightsUsedThisMonth Int       @default(0)
+  isPremium               Boolean   @default(false)
+  usagePeriodStart        DateTime?
+  createdAt               DateTime  @default(now())
   foodLogs            FoodLog[]
   waterLogs           WaterLog[]
   savedPlans          SavedPlan[]

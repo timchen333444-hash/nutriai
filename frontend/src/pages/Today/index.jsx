@@ -10,6 +10,7 @@ import WaterTracker from './WaterTracker';
 import FoodSearch from './FoodSearch';
 import FoodLog from './FoodLog';
 import NutritionAccordion from './NutritionAccordion';
+import AminoAcidScore from './AminoAcidScore';
 import TemplatesModal from './TemplatesModal';
 import RestaurantQuickAdd from './RestaurantQuickAdd';
 import SupplementTracker from './SupplementTracker';
@@ -31,20 +32,23 @@ export default function Today() {
   const [dataLoading,     setDataLoading]     = useState(true);
   const [showAccordion,   setShowAccordion]   = useState(false);
   const [showTemplates,   setShowTemplates]   = useState(false);
+  const [aminoData,       setAminoData]       = useState(null);
 
   const today = new Date().toISOString().slice(0, 10);
   const dateLabel = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   const fetchData = useCallback(async (triggerAlerts = false) => {
     try {
-      const [logRes, waterRes, suppRes] = await Promise.all([
+      const [logRes, waterRes, suppRes, aminoRes] = await Promise.all([
         axios.get(`/api/log?date=${today}`),
         axios.get(`/api/water?date=${today}`),
         axios.get(`/api/supplements/log?date=${today}`),
+        axios.get(`/api/nutrition/amino-score?date=${today}`).catch(() => ({ data: null })),
       ]);
       setLogs(logRes.data);
       setWater(waterRes.data.glasses);
       setSupplements(suppRes.data);
+      setAminoData(aminoRes.data);
       // Re-analyze deficiencies after a meal is logged
       if (triggerAlerts) triggerAnalysis();
     } catch (e) {
@@ -105,6 +109,7 @@ export default function Today() {
             carbs={totals.carbs}
             fat={totals.fat}
             targets={user}
+            aminoScore={logs.length > 0 ? aminoData?.score : null}
           />
         </div>
 
@@ -181,6 +186,9 @@ export default function Today() {
             </button>
           </div>
         )}
+
+        {/* Amino acid score card — only shown when meals are logged */}
+        {logs.length > 0 && <AminoAcidScore data={aminoData} />}
 
         {/* Nutrition detail accordion */}
         <div className="mb-4">
