@@ -37,7 +37,7 @@ const ALLOWED_ORIGINS = [
 app.use(cors({
   origin: (origin, cb) => {
     // Allow server-to-server requests (no origin) and any listed origin
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) cb(null, true);
+    if (!origin || ALLOWED_ORIGINS.includes(origin) || /\.vercel\.app$/.test(origin)) cb(null, true);
     else cb(new Error(`CORS: origin ${origin} not allowed`));
   },
 }));
